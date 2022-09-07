@@ -1,0 +1,11 @@
+# media - Can't release these via GPLv3, also many are too big for git
+*.mp4
+*.mp3
+*.ogg
+ui/images
+
+# generated files
+*.pyc
+*.bak
+venv/
+
