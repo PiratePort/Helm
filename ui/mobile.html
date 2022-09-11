@@ -3,12 +3,12 @@
     <link href="https://fonts.googleapis.com/css?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
         .btn {
-            height: 350px;
+            height: 250px;
             width:95%;
             margin: auto;
             border:1px solid white;
             color: white;
-            line-height: 350px;
+            line-height: 250px;
             font-size: 80px;
             text-align: center;
             font-weight: bolder;
@@ -42,6 +42,9 @@
     <div id="singbtn" class="btn disconnected">
         SING
     </div>
+    <div id="lightningbtn" class="btn disconnected">
+        LIGHTNING
+    </div>
 </div>
 
 <script>
@@ -55,6 +58,7 @@ function onload() {
 
     const firebtn = document.getElementById("firebtn");
     const singbtn = document.getElementById("singbtn");
+    const lightningbtn = document.getElementById("lightningbtn");
 
     ws = new WebSocket(URI);
     ws.addEventListener("open", ()=>{
@@ -71,6 +75,7 @@ function onload() {
 
         firebtn.classList.remove("error");
         singbtn.classList.remove("error");
+        lightningbtn.classList.remove("error");
     })
 
     ws.addEventListener("message", (rawMsg)=>{
@@ -110,6 +115,17 @@ function onload() {
                     }
                 }
                 break;
+            case "RAIN":
+            if(msg.type === 'N' && msg.data.prop === "strike") {
+                    const strike = !!msg.data.val;
+                    if(strike) {
+                        lightningbtn.classList.add("active");
+                    } else {
+                        lightningbtn.classList.remove("active");
+                    }
+                }
+                break;
+
         }
     });
 
@@ -139,6 +155,11 @@ function onload() {
         else if(manifest.indexOf("PUMPKINS") !== -1)
             singbtn.classList.remove("disconnected");
 
+        if( manifest.indexOf("RAIN") === -1)
+            lightningbtn.classList.add("disconnected");
+        else if(manifest.indexOf("RAIN") !== -1)
+            lightningbtn.classList.remove("disconnected");
+
         latestManifest = manifest;
     }
     // set a timer to ensure all UI elements are up to date with the latest manifest
@@ -160,6 +181,14 @@ function onload() {
             type : "C",
             address: "PUMPKINS",
             data:{command:"SING"}
+        }));
+    }
+
+    lightningbtn.onclick = ()=> {
+        ws.send(JSON.stringify({
+            type : "C",
+            address: "RAIN",
+            data:{command:"LIGHTNING"}
         }));
     }
 

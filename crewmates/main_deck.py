@@ -67,8 +67,6 @@ class MainDeck:
             await self.send_manifest(listener, "*")
 
 
-
-
 if __name__ == "__main__":
     md = MainDeck()
     start_server = websockets.serve(md.start, "0.0.0.0", 31337)

@@ -37,6 +37,7 @@ class BaseCrewmate:
     ws = None
     on_deck = False
     prop_names = []
+    proxy_ws = []
 
     def __init__(self):
         # find all the properties, register with them and cache them
@@ -103,10 +104,28 @@ class BaseCrewmate:
                 await self.on_connection(ws)
                 async for msg in ws:
                     asyncio.create_task(self._handle_msg(json.loads(msg)))
+                    for p in self.proxy_ws:
+                        print("Proxy Send"+msg)
+                        await p.send(msg)
+
             except ConnectionError as e:
                 print(e)
                 self.on_deck = False
                 return
+
+    async def run_proxy(self, proxy_ws, path):
+        """local proxy on 31336 for local crewmates who cant shout (e.g. rain.html)"""
+        try:
+            self.proxy_ws.append(proxy_ws)
+            print(f"Proxying msgs for {proxy_ws.remote_address}")
+            async for msg in proxy_ws:
+                if self.ws:
+                    print("Proxy " + msg)
+                    await self.ws.send(msg)
+        except websockets.exceptions.ConnectionClosedError as e:
+            print(f"{proxy_ws.remote_address} removed from proxy")
+        finally:
+            self.proxy_ws.remove(proxy_ws)
 
     async def find_uri(self):
         ip = await shout_client()

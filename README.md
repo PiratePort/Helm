@@ -98,3 +98,16 @@ Exec=vlc --extraintf=http --http-host 0.0.0.0 --http-port 8080 --http-password x
 Terminal=false
 Hidden=false
 ```
+
+### RPI servo hat requirements
+
+If you're running the sero hat you'll need install the following:
+
+```
+sudo apt-get install -y python-smbus
+sudo apt-get install -y i2c-tools
+sudo pip3 install adafruit-circuitpython-servokit
+```
+
+You will also need to enable i2c via `sudo raspi-config` and reboot
+see [the tutorial](https://learn.adafruit.com/adafruit-16-channel-pwm-servo-hat-for-raspberry-pi/overview) for more info

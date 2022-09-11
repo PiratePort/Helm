@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Rain</title>
+</head>
+<body>
+
+</body>
+</html><html>
+<head>
+<style>
+hr {
+     width: 10px;
+     border-color: transparent;
+     border-right-color: rgba(255, 255, 255, 0.7);
+     border-right-width: 250px;
+     position: absolute;
+     bottom: 100%;
+     transform-origin: 100% 50%;
+     animation-name: rain;
+     animation-duration: 1s;
+     animation-timing-function: linear;
+     animation-iteration-count: infinite;
+   }
+
+   @keyframes rain {
+     from {
+       transform: rotate(105deg) translateX(0);
+     }
+     to {
+       transform: rotate(105deg) translateX(calc(100vh + 20px));
+     }
+   }
+</style>
+</head>
+
+<body id="body" style="border: 0; margin:0; padding:0; width:100%; height:100%; background: black; overflow: hidden">
+
+</div>
+<script>
+    // add rain drop HRs
+      let hrElement;
+  let counter = 100;
+  for (let i = 0; i < counter; i++) {
+    hrElement = document.createElement("HR");
+
+      hrElement.style.left = Math.floor(Math.random() * window.innerWidth+150) -350 + "px";
+      hrElement.style.animationDuration = 0.2 + Math.random() * 0.3 + "s";
+      hrElement.style.animationDelay = Math.random() * 5 + "s";
+
+    document.body.appendChild(hrElement);
+  }
+      setTimeout(lightning, 2000);
+
+  let delay = (ms) => new Promise((res)=>setTimeout(res,ms));
+  const body = document.getElementById("body")
+  let pumpkins_singing = false;
+  async function lightning() {
+                ws.send(JSON.stringify({
+                            type:"N",
+                            address:"RAIN",
+                            from: "RAIN",
+                            data: {prop:"strike", val:true}
+                        }));
+
+        body.style.backgroundColor = "white";
+        await delay(75);
+        body.style.backgroundColor = "black";
+        await delay(Math.random() * 100);
+        for(let i=0; i<10; i++) {
+            body.style.backgroundColor = "#E4E4E4E4";
+            await delay(16);
+            body.style.backgroundColor = "black";
+             await delay(16);
+        }
+
+        ws.send(JSON.stringify({
+                            type:"N",
+                            address:"RAIN",
+                            from: "RAIN",
+                            data: {prop:"strike", val:false}
+                        }));
+  }
+
+    const URI = "ws://localhost:31336" // 1336 because proxy
+    const ws = new WebSocket(URI);
+    ws.addEventListener("open", ()=>{
+        // add ourselves to manifest
+        ws.send(JSON.stringify({
+            type : "SA",
+            address: "RAIN"
+        }));
+        //subscribe to our events
+        ws.send(JSON.stringify({
+            type : "S",
+            address:"RAIN"
+        }));
+        // subscribe to cannon events as well
+        ws.send(JSON.stringify({
+            type : "S",
+            address:"CANNON"
+        }));
+        // subscribe to PUMPKINS events as well
+        ws.send(JSON.stringify({
+            type : "S",
+            address:"PUMPKINS"
+        }));
+        // init listener
+        ws.addEventListener("message", (rawMsg)=>{
+            console.log(rawMsg)
+            let msg = JSON.parse(rawMsg.data);
+            switch (msg.address) {
+                case "RAIN":
+                    // do we have any commands?
+                    if(msg.data && msg.data.command == "LIGHTNING") {
+                        lightning();
+                    }
+                    break;
+                case "CANNON":
+                    // TODO : Project something special when cannon goes off? Maybe red fire?
+                    break;
+                case "PUMPKINS":
+                    if(msg.data.prop === "song") {
+
+                       } else if(msg.type === 'N' && msg.data.prop === "singing" && !msg.data.val) {
+                             pumpkins_singing = msg.data.val;
+                    }
+                }
+        });
+
+    })
+</script>
+
+
+<script>
+    console.log(".=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-.\n" +
+        "|                     ______                     |\n" +
+        "|                  .-\"      \"-.                  |\n" +
+        "|                 /            \\                 |\n" +
+        "|     _          |              |          _     |\n" +
+        "|    ( \\         |,  .-.  .-.  ,|         / )    |\n" +
+        "|     > \"=._     | )(__/  \\__)( |     _.=\" <     |\n" +
+        "|    (_/\"=._\"=._ |/     /\\     \\| _.=\"_.=\"\\_)    |\n" +
+        "|           \"=._\"(_     ^^     _)\"_.=\"           |\n" +
+        "|               \"=\\__|IIIIII|__/=\"               |\n" +
+        "|              _.=\"| \\IIIIII/ |\"=._              |\n" +
+        "|    _     _.=\"_.=\"\\          /\"=._\"=._     _    |\n" +
+        "|   ( \\_.=\"_.=\"     `--------`     \"=._\"=._/ )   |\n" +
+        "|    > _.=\"                            \"=._ <    |\n" +
+        "|   (_/                                    \\_)   |\n" +
+        "|                                                |\n" +
+        "'-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-='");
+</script>
+</body>
+</html>
