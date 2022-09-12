@@ -52,11 +52,13 @@ hr {
     document.body.appendChild(hrElement);
   }
       setTimeout(lightning, 2000);
+      let interval = setInterval(lightning, 30000);
 
   let delay = (ms) => new Promise((res)=>setTimeout(res,ms));
   const body = document.getElementById("body")
   let pumpkins_singing = false;
   async function lightning() {
+                if(pumpkins_singing) return;
                 ws.send(JSON.stringify({
                             type:"N",
                             address:"RAIN",

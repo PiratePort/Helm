@@ -16,6 +16,7 @@
     <!-- sounds -->
     <audio id="sndcannon" src="sounds/nri-cannon.mp3" hidden preload="auto"></audio>
     <audio id="sndsplash" src="sounds/splash.mp3" hidden preload="auto"></audio>
+    <audio id="sndthunder" src="sounds/thunder.wav" hidden preload="auto"></audio>
 </head>
 
 <body style="border: 0; margin:0; padding:0; width:100%; height:100%; background: black; overflow: hidden">
@@ -75,10 +76,16 @@
             type : "S",
             address:"PUMPKINS"
         }));
+        // subscribe to RAIN events as well
+        ws.send(JSON.stringify({
+            type : "S",
+            address:"RAIN"
+        }));
     })
 
     let  video1El = document.getElementById('video1');
     function init() {
+        video1El.currentTime = Math.random() * (25*60)
         video1El.play();
 
 
@@ -138,8 +145,9 @@
 
         // WS msg routing
         ws.addEventListener("message", (rawMsg)=>{
-            console.log(rawMsg)
+
             let msg = JSON.parse(rawMsg.data);
+             console.log(msg)
             switch (msg.address) {
                 case "AMBIANCE":
                     // do we have any commands?
@@ -161,7 +169,16 @@
                         // dirty hack but I dunno what else to do
                         location.reload();
                     }
+                    break;
+                case "RAIN":
+                    // Lightning/Thunder BOOM
+                    if(msg.type === 'N' && msg.data.prop === "strike") {
+                        console.log("THUNDER!");
+                        document.getElementById("sndthunder").play();
+                    }
+                    break;
                 }
+
         });
 
     }
