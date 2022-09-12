@@ -23,6 +23,7 @@ Raspberry Pi: `sudo pip3 install RPI.GPIO`
 
 Beaglebone Black: `sudo pip3 install Adafruit_BBIO`
 
+
 ## Running
 `python3 ./crewmates/main_deck.py`
 
@@ -111,3 +112,7 @@ sudo pip3 install adafruit-circuitpython-servokit
 
 You will also need to enable i2c via `sudo raspi-config` and reboot
 see [the tutorial](https://learn.adafruit.com/adafruit-16-channel-pwm-servo-hat-for-raspberry-pi/overview) for more info
+
+### ValueError: Namespace Gst not available
+
+`sudo apt install python3-gst-1.0`
