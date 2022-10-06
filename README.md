@@ -19,7 +19,7 @@ install global requirements through pip via:
 
 You may need to intall the Adafruit GPIO library depending on your platform
 
-Raspberry Pi: `sudo pip3 install RPI.GPIO`
+Raspberry Pi: `sudo pip3 install RPI.GPIO pyalsaaudio`
 
 Beaglebone Black: `sudo pip3 install Adafruit_BBIO`
 

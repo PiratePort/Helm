@@ -5,3 +5,4 @@ xmltodict~=0.13.0
 numpy~=1.23.3
 SoundFile~=0.10.3.post1
 matplotlib~=3.5.3
+pyalsaaudio

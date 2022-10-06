@@ -1,7 +1,5 @@
 import asyncio
-
-import numpy
-
+import alsaaudio
 from crewmate import BaseCrewmate, CrewmateProperty
 from util import MessageTypes, MessageFields
 import os
@@ -32,6 +30,7 @@ except ModuleNotFoundError as e:
 VOICE_PATH = dir_path + "/sounds/parrot.wav"
 VOL_RANGE = 25  # volume is an int between 0 and this. This lets us dial in a fixed precision
 
+MAX_SQUAK_VOL = 50 # out of 100. Bigger is louder
 # ch2 = np.array([data[i][1] for i in range(len(data))])  # channel 2
 
 class Parrot(BaseCrewmate):
@@ -42,7 +41,9 @@ class Parrot(BaseCrewmate):
     def __init__(self):
         self.address = "Parrot"
         self.squawking = True
-        self.sleep_time_secs = 10
+        self.sleep_time_secs = 30
+        self.volume = MAX_SQUAK_VOL
+        self._dance_instead = False
         self._pan_factor = 0
         self._tilt_factor = 0
         self._squawk_timestamp = 0
@@ -91,6 +92,20 @@ class Parrot(BaseCrewmate):
         loop = asyncio.get_event_loop()
         loop.create_task(self.squawk_forever())
         loop.create_task(self.pan_forever())
+        await self.set_volume(MAX_SQUAK_VOL)
+        await self.on_prop_change("PUMPKINS", "singing", self.on_pumpkin_singing_change)
+
+    async def on_pumpkin_singing_change(self, val):
+        # we go quiet when pumpkins are singing
+        print("Changing volume " + str(val))
+        self._dance_instead = val  # we should DANCE to the punkin pirates
+        await self.set_volume(0 if val else MAX_SQUAK_VOL)
+
+
+    async def set_volume(self, vol):
+        m = alsaaudio.Mixer()
+        self.volume = vol
+        m.setvolume(vol)
 
     async def handle_command(self, msg):
         pass
@@ -102,7 +117,14 @@ class Parrot(BaseCrewmate):
         await self.squawk()
         while self.squawking:
             await self.squawk()
-            await asyncio.sleep(self.sleep_time_secs)
+            # need some fancy sleep logic to wake and DANCE
+            for x in range(self.sleep_time_secs):
+                if not self._dance_instead:
+                    await asyncio.sleep(1)
+
+            while self._dance_instead:
+                await self.dance()
+                await asyncio.sleep(0.25)
 
     async def pan_forever(self):
         # do a squawk first to preload sound
@@ -117,6 +139,9 @@ class Parrot(BaseCrewmate):
 
     async def squawk(self):
         loop = asyncio.get_event_loop()
+        if self._dance_instead:
+            return
+
         await asyncio.gather(
             loop.run_in_executor(None, self._squawk_blocking),
             self._animate(time.perf_counter()))
@@ -130,18 +155,35 @@ class Parrot(BaseCrewmate):
 
     # Moving Logic
     async def _animate(self, start_timestamp):
-        samp_idx = 0
-        data_len = len(self._speech_movement_array)
-        await asyncio.sleep(0.01)
-        print("-" * 100)
-        while samp_idx < data_len:
-            time_idx = time.perf_counter() - start_timestamp
-            samp_idx = int(time_idx * self._speech_sample_rate) + 1
-            if samp_idx >= data_len:
-                return
-            vol = self._speech_movement_array[samp_idx]
-            self.set_tilt(vol)
-            await asyncio.sleep(0.05)
+        try:
+            samp_idx = 0
+            data_len = len(self._speech_movement_array)
+            await asyncio.sleep(0.01)
+            print("-" * 100)
+            while samp_idx < data_len:
+                if self._dance_instead:
+                    return # skip through fast
+                time_idx = time.perf_counter() - start_timestamp
+                samp_idx = int(time_idx * self._speech_sample_rate) + 1
+                if samp_idx >= data_len:
+                    return
+                vol = self._speech_movement_array[samp_idx]
+                self.set_tilt(vol)
+                await asyncio.sleep(0.05)
+        finally:
+            while self._dance_instead:
+                await self.dance()
+                await asyncio.sleep(0.25)
+
+    async def dance(self):
+        # do a little jig
+        tilt_angles = [65, 75, 75, 65, 75]
+        # pan_angles = [80, 82, 80, 80, 82]
+        sleeps     = [0.3, 0.3, 1.0, 0.3, 0.3]
+        for i in range(len(sleeps)):
+            servo_kit.servo[TILT_SERVO].angle = tilt_angles[i]
+            # servo_kit.servo[PAN_SERVO].angle = pan_angles[i]
+            await asyncio.sleep(sleeps[i])
 
     def set_tilt(self, vol):
         if vol == self._tilt:
