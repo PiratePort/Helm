@@ -9,87 +9,54 @@
 </body>
 </html><html>
 <head>
+<style>
+hr {
+     width: 10px;
+     border-color: transparent;
+     border-right-color: rgba(255, 255, 255, 0.7);
+     border-right-width: 250px;
+     position: absolute;
+     bottom: 100%;
+     transform-origin: 100% 50%;
+     animation-name: rain;
+     animation-duration: 1s;
+     animation-timing-function: linear;
+     animation-iteration-count: infinite;
+   }
+
+   @keyframes rain {
+     from {
+       transform: rotate(105deg) translateX(0);
+     }
+     to {
+       transform: rotate(105deg) translateX(calc(100vh + 20px));
+     }
+   }
+</style>
 </head>
 
-<body id="body" style="border: 0; margin:0; padding:0; width:100%; height:100%; background: #000000; overflow: hidden; cursor: none">
+<body id="body" style="border: 0; margin:0; padding:0; width:100%; height:100%; background: black; overflow: hidden">
 
-<canvas id="canvas"></canvas>
-
+</div>
 <script>
-    (function() {
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
+    // add rain drop HRs
+      let hrElement;
+  let counter = 100;
+  for (let i = 0; i < counter; i++) {
+    hrElement = document.createElement("HR");
 
+      hrElement.style.left = Math.floor(Math.random() * window.innerWidth+150) -350 + "px";
+      hrElement.style.animationDuration = 0.2 + Math.random() * 0.3 + "s";
+      hrElement.style.animationDelay = Math.random() * 5 + "s";
 
-        const body = document.getElementById("body")
-        let pumpkins_singing = false;
+    document.body.appendChild(hrElement);
+  }
+      setTimeout(lightning, 2000);
+      let interval = setInterval(lightning, 30000);
 
-
-        // draw math
-        const numDrops = 35;
-        let fallSpeed = 5;
-        let dropStepX = 0; // set in reisze
-        let drops = Array(numDrops).fill(1).map((x, y) => [x + y*100, Math.random()*500]);
-        let dropLength = 50;
-        let canvasWidth = 100;
-        let canvasHeight = 100;
-        const FRAME_SKIP = 4;
-
-        // resize the canvas to fill browser window dynamically
-        window.addEventListener('resize', resizeCanvas, false);
-        function resizeCanvas() {
-            canvas.width = Math.floor(window.innerWidth*1.35);
-            canvas.height = Math.floor(window.innerHeight*1.35);
-            canvasHeight = canvas.height;
-            canvasWidth = canvas.width;
-            ctx.rotate(8 * Math.PI / 180);
-            ctx.translate(0, -canvasHeight*.3)
-            ctx.fillStyle = "#FFFFFF"
-
-            dropStepX = canvas.width/numDrops;
-            drops = Array(numDrops).fill(1).map((x, y) => [x + y*dropStepX, Math.random()*canvasHeight]);
-            dropLength = Math.floor(canvasHeight*0.17);
-            fallSpeed = Math.floor(canvasHeight*0.04)*FRAME_SKIP;
-            /**
-             * Your drawings need to be inside this function otherwise they will be reset when
-             * you resize the browser window and the canvas goes will be cleared.
-             */
-            //draw();
-        }
-
-        function drawRaindrops() {
-            for(var i=0; i<numDrops;i++) {
-                let drop = drops[i];
-                // if we're in the drawable range, shift and draw
-                if(drop[0] > 0 && drop[1] < canvasHeight) {
-                    drop[1]+=fallSpeed;
-                } else {
-                    //reset
-                    drop[0] = i*dropStepX+Math.floor(Math.random()*100-50);
-                    drop[1] = 0+Math.floor(Math.random()*50-25);
-                }
-                ctx.fillRect(drop[0],drop[1],5,dropLength)
-            }
-        }
-
-        setInterval(function(){
-            window.requestAnimationFrame(draw);
-        }, 16*FRAME_SKIP)
-        function draw() {
-                ctx.clearRect(0, 0, canvasWidth, canvasHeight); // clear the canvas
-                drawRaindrops();
-        }
-
-        // init
-        resizeCanvas();
-        draw();
-    })();
-</script>
-<script>
-
+  let delay = (ms) => new Promise((res)=>setTimeout(res,ms));
   const body = document.getElementById("body")
   let pumpkins_singing = false;
-  let delay = (ms) => new Promise((res)=>setTimeout(res,ms));
   async function lightning() {
                 if(pumpkins_singing) return;
                 ws.send(JSON.stringify({
@@ -141,7 +108,6 @@
             type : "S",
             address:"PUMPKINS"
         }));
-        lightning();
         // init listener
         ws.addEventListener("message", (rawMsg)=>{
             console.log(rawMsg)

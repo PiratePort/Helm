@@ -1,5 +1,7 @@
 import asyncio
 import json
+import os
+import http
 from util import MessageTypes, MessageFields, shout_client
 import websockets
 
@@ -47,6 +49,11 @@ class BaseCrewmate:
             self.__class__.__dict__[prop_name].crewmate = self
 
         self._notify_listeners = []
+        try:
+            self._http_server_root = os.path.realpath(os.path.dirname(os.path.realpath(__file__)) + "/../ui")
+        except Exception as e:
+            print("Can not setup HTTP server because: " + str(e))
+            self._http_server_root = None
 
     async def on_connection(self, ws):
         """ Overwrite this if you want to do something on connection"""
@@ -126,6 +133,46 @@ class BaseCrewmate:
             print(f"{proxy_ws.remote_address} removed from proxy")
         finally:
             self.proxy_ws.remove(proxy_ws)
+
+    async def serve_http_in_websocket_process_request(self, path, request_headers):
+        if "Upgrade" in request_headers:
+            return  # Probably a WebSocket connection
+
+        if self._http_server_root is None:
+            return  # error in http server root discovery
+
+        if path == "/":
+            path = "/mobile.html"
+
+        response_headers = [
+            ('Server', 'asyncio websocket server'),
+            ('Connection', 'close'),
+        ]
+
+        full_path = os.path.realpath(os.path.join(self._http_server_root, path[1:]))
+        # Validate the path
+        if os.path.commonpath([self._http_server_root, full_path]) != self._http_server_root or \
+                not os.path.exists(full_path) or not os.path.isfile(full_path):
+            print("HTTP GET {} 404 NOT FOUND".format(full_path))
+            return http.HTTPStatus.NOT_FOUND, [], b'404 NOT FOUND'
+
+        # Guess file content type
+        MIME_TYPES = {
+            "html": "text/html",
+            "js": "text/javascript",
+            "css": "text/css",
+            "mp4": "video/mp4"
+        }
+
+        extension = full_path.split(".")[-1]
+        mime_type = MIME_TYPES.get(extension, "application/octet-stream")
+        response_headers.append(('Content-Type', mime_type))
+
+        # Read the whole file into memory and send it out
+        body = open(full_path, 'rb').read()
+        response_headers.append(('Content-Length', str(len(body))))
+        print("HTTP GET {} 200 OK".format(path))
+        return http.HTTPStatus.OK, response_headers, body
 
     async def find_uri(self):
         ip = await shout_client()
