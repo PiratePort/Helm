@@ -20,10 +20,19 @@ class RainProxy(BaseCrewmate):
 
 
 if __name__ == "__main__":
+
     qm = RainProxy()
-    start_server = websockets.serve(qm.run_proxy, "0.0.0.0", 31336,
-                                    process_request=qm.serve_http_in_websocket_process_request)
-    asyncio.get_event_loop().run_until_complete(start_server)
-    asyncio.get_event_loop().run_until_complete(qm.start())
-    asyncio.get_event_loop().run_forever()
+
+    async def main():
+        async with websockets.serve(qm.run_proxy, "0.0.0.0", 31336,
+                                    process_request=qm.serve_http_in_websocket_process_request):
+            await qm.start()
+            await asyncio.Future()  # run forever
+
+    asyncio.run(main())
+    # start_server = websockets.serve(qm.run_proxy, "0.0.0.0", 31336,
+    #                                 process_request=qm.serve_http_in_websocket_process_request)
+    # asyncio.run(start_server)
+    #asyncio.get_running_loop().run_until_complete(qm.start())
+    #asyncio.get_running_loop().run_forever()
 

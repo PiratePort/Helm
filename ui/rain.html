@@ -141,7 +141,15 @@
             type : "S",
             address:"PUMPKINS"
         }));
-        lightning();
+        
+        const strikeForever = () =>{
+            lightning()
+            const next = Math.random() * 15000 + 10000;
+            setTimeout(strikeForever, next);
+        }
+
+        strikeForever();
+
         // init listener
         ws.addEventListener("message", (rawMsg)=>{
             console.log(rawMsg)
@@ -165,6 +173,9 @@
                 }
         });
 
+    });
+    ws.addEventListener("close", () =>{
+        console.error("Closed");
     })
 </script>
 
